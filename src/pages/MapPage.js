@@ -3,7 +3,9 @@ import { StyleSheet, View } from "react-native";
 import MapView from "react-native-maps";
 import Geolocation from "react-native-geolocation-service";
 import io from 'socket.io-client'
+import { useSocketContext } from "../context/SocketContext";
 const MapPage = () => {
+  const {socket} = useSocketContext()
   const [myPosition, setMyPosition] = useState(null);
   useEffect(() => {
     try {
@@ -18,8 +20,11 @@ const MapPage = () => {
   }, []);
 
   useEffect(()=>{
-    const socket = io("localhost:3030")
-    socket.emit("position",{lat:myPosition?.longitude,lang:myPosition?.longitude})
+    try {
+      socket.emit("position",{lat:myPosition?.longitude,lang:myPosition?.longitude})
+    }catch (e){
+      console.log("ERROR DE EMIT SOCKET.IO")
+    }
   },[])
 
   if(!myPosition){

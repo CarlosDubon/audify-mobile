@@ -4,7 +4,9 @@ import LootieView from 'lottie-react-native'
 import { Title } from "react-native-paper";
 import io from "socket.io-client"
 import { useNavigation } from "@react-navigation/native";
+import { useSocketContext } from "../context/SocketContext";
 const InitConnection = () => {
+  const { socket } = useSocketContext()
   const navigation = useNavigation()
   const [dots,setDots]=useState(".")
   const [word,setWord]=useState(0)
@@ -39,10 +41,14 @@ const InitConnection = () => {
   },[word])
 
   const createConnectionToServer=()=>{
-    const socket = io("localhost:8080")
-    socket.on("make-request",data=>{
-      navigation.navigate("MapPage")
-    })
+    try {
+      socket.on("make-request",data=>{
+        navigation.navigate("MapPage")
+      })
+    }catch (e) {
+      console.log(e)
+      console.log("ERROR EN ON SOCKET.IO")
+    }
   }
   return (
     <View style={Style.container}>
