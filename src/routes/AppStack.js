@@ -9,9 +9,11 @@ const Stack = createStackNavigator();
 const AppStack = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="InitConnection" component={InitConnection} />
+      <Stack.Navigator
+        headerMode={"none"}
+      >
         <Stack.Screen name="MapPage" component={MapPage} />
+        <Stack.Screen name="InitConnection" component={InitConnection} />
       </Stack.Navigator>
 
     </NavigationContainer>

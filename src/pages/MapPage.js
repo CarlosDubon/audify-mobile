@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import MapView from "react-native-maps";
 import Geolocation from "react-native-geolocation-service";
-
+import io from 'socket.io-client'
 const MapPage = () => {
   const [myPosition, setMyPosition] = useState(null);
   useEffect(() => {
@@ -16,6 +16,12 @@ const MapPage = () => {
       console.log(e);
     }
   }, []);
+
+  useEffect(()=>{
+    const socket = io("localhost:3030")
+    socket.emit("position",{lat:myPosition?.longitude,lang:myPosition?.longitude})
+  },[])
+
   if(!myPosition){
     return <></>
   }
