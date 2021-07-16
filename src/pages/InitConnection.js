@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import LootieView from 'lottie-react-native'
-import { Title } from "react-native-paper";
+import { Text, Title } from "react-native-paper";
 import io from "socket.io-client"
 import { useNavigation } from "@react-navigation/native";
-import { useSocketContext } from "../context/SocketContext";
-const InitConnection = () => {
-  const { socket } = useSocketContext()
+import axios from "axios";
+import { SERVER_URI } from "../theme/ServerConection";
+import { connect } from "react-redux";
+const InitConnection = (props) => {
   const navigation = useNavigation()
   const [dots,setDots]=useState(".")
   const [word,setWord]=useState(0)
 
   const words = ["Obteniendo usuario","Estableciendo una conexión","Preparando audifonos"]
-
-  useEffect(()=>{
-    createConnectionToServer()
-  })
   useEffect(()=>{
     const timerDots = setTimeout(()=>{
       if(dots.length < 3){
@@ -40,28 +37,44 @@ const InitConnection = () => {
     }
   },[word])
 
-  const createConnectionToServer=()=>{
-    try {
-      socket.on("make-request",data=>{
-        navigation.navigate("MapPage")
+  useEffect(()=>{
+    verifyAccess()
+    /*const accessTimer=setTimeout(()=>{
+      verifyAccess()
+    },1000*60*2)
+    return()=>{
+      clearTimeout(accessTimer)
+    }*/
+  },[])
+
+  const verifyAccess= async ()=>{
+    try{
+      let res =await axios.get(`${props.server}/output/ask`,{
+        headers:{
+          Authorization:`Bearer ${props.token}`
+        }
       })
+      if(res.status===200){
+        navigation.navigate("MapPage")
+      }
     }catch (e) {
       console.log(e)
-      console.log("ERROR EN ON SOCKET.IO")
+
     }
   }
+
   return (
     <View style={Style.container}>
       <View>
         <LootieView
           style={Style.animation}
-          source={require("../theme/animation/loading.json")}
+          source={require("../theme/animation/sound.json")}
           autoPlay
           loop
         />
       </View>
-      <View>
-        <Title>{`${words[word]} ${dots}`}</Title>
+      <View style={{flex:1}}>
+        <Text style={Style.mainText}>{`${words[word]} ${dots}`}</Text>
       </View>
     </View>
   );
@@ -75,6 +88,15 @@ const Style = StyleSheet.create({
   },
   animation:{
     width: Dimensions.get("window").width
+  },
+  mainText:{
+    fontFamily:"BalooTammudu2-SemiBold",
+    fontSize:24,
+    color:"#161616"
   }
 })
-export default InitConnection;
+const mapStateToProps=(state)=>({
+  token:state.user.token,
+  server:state.config.server
+})
+export default connect(mapStateToProps) (InitConnection);
