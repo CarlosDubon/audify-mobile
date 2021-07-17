@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import Geolocation from "react-native-geolocation-service";
 import io from "socket.io-client";
 import { SERVER_URI, SOCKET_URI } from "../theme/ServerConection";
@@ -14,7 +14,9 @@ import axios from "axios";
 const MapPage = (props) => {
   const [myPosition, setMyPosition] = useState(null);
   const [compassHeading, setCompassHeading] = useState(0);
-  const [audioType,setAudioType]=useState(1)
+
+  const [audioType,setAudioType]=useState(0)
+  const [sourceType,setSourceType]=useState(0)
 
 
   const [show,setShow] = useState(false)
@@ -22,6 +24,7 @@ const MapPage = (props) => {
   const [enabled,setEnabled]=useState(false)
   const [socket,setSocket] = useState(null)
 
+  const [selectedPosition,setSelectedPosition] = useState(null)
 
   useEffect(() => {
     try {
@@ -68,15 +71,15 @@ const MapPage = (props) => {
   useEffect(() => {
     if(enabled){
       try {
-        console.log({ lat : myPosition?.latitude, long: myPosition?.longitude,rot:compassHeading,option:audioType })
-        socket.emit("position", { lat : myPosition?.latitude, long: myPosition?.longitude,rot:compassHeading,option:audioType });
+        console.log({ lat : myPosition?.latitude, long: myPosition?.longitude,rot:compassHeading,option:audioType,sOption:sourceType,pLat:selectedPosition?.latitude,pLong:selectedPosition?.longitude })
+        socket.emit("position", { lat : myPosition?.latitude, long: myPosition?.longitude,rot:compassHeading,option:audioType,sOption:sourceType,pLat:selectedPosition?.latitude,pLong:selectedPosition?.longitude });
 
       }catch (e){
         console.log(e)
       }
     }
 
-  }, [myPosition,compassHeading,audioType]);
+  }, [myPosition,compassHeading,audioType,selectedPosition,sourceType]);
 
 
   const fetchPlaces=async ()=>{
@@ -102,14 +105,20 @@ const MapPage = (props) => {
           longitudeDelta: 0.01,
         }}
         zoomEnabled
+        onPress={(e)=>setSelectedPosition(e.nativeEvent.coordinate)}
 
-      />
+      >
+        {selectedPosition&&(<Marker coordinate={selectedPosition} />)}
+      </MapView>
       <View style={Style.preferencesBtn}>
         <Pressable onPress={()=>setShow(true)}>
           <Icon name={"gear"} size={30} color={colors.light} />
         </Pressable>
       </View>
-      <UserPreferences show={show} onClose={()=>setShow(false)} onValueChange={setAudioType} value={audioType} />
+      <UserPreferences show={show} onClose={()=>setShow(false)} onValueChange={setAudioType} value={audioType}
+                       soruceValue={sourceType}
+                       onValueSourceChange={setSourceType}
+      />
     </View>
   );
 

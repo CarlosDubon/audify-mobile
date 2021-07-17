@@ -6,7 +6,7 @@ import React from "react";
 import { Picker } from "@react-native-picker/picker";
 import { StackActions, useNavigation } from "@react-navigation/native";
 
-const UserPreferences = ({show,onClose,onValueChange,value}) => {
+const UserPreferences = ({show,onClose,onValueChange,onValueSourceChange,soruceValue,value}) => {
   const navigation = useNavigation()
   return (
     <Modal
@@ -37,12 +37,25 @@ const UserPreferences = ({show,onClose,onValueChange,value}) => {
           padding:16
         }}>
           <View>
-            <Text>Tipo de modulación de audio:</Text>
+            <Text>Tipo de procesamiento de audio:</Text>
             <Picker selectedValue={value}
                     onValueChange={text=>onValueChange(text)}
             >
-              <Picker.Item label={"Opcion 1"} value={1} />
-              <Picker.Item label={"Opcion 2"} value={2} />
+              <Picker.Item label={"Seleccinar"} value={0} />
+              <Picker.Item label={"Intensidad de sonido"} value={1} />
+              <Picker.Item label={"Cambio de frecuencia"} value={2} />
+              <Picker.Item label={"Filtro pasas bajas"} value={3} />
+            </Picker>
+          </View>
+          <View style={{marginTop:16}}>
+            <Text>Cantidad de fuentes:</Text>
+            <Picker selectedValue={soruceValue}
+                    onValueSourceChange={text=>onValueChange(text)}
+            >
+              <Picker.Item label={"1 fuente"} value={0} />
+              <Picker.Item label={"2 fuente"} value={1} />
+              <Picker.Item label={"3 fuente"} value={2} />
+              <Picker.Item label={"4 fuente"} value={3} />
             </Picker>
           </View>
         </View>
@@ -71,7 +84,7 @@ const UserPreferences = ({show,onClose,onValueChange,value}) => {
 const Styles = StyleSheet.create({
   mainContainer:{
     width:Dimensions.get("window").width - Dimensions.get("window").width/8,
-    height:250,
+    height:350,
     backgroundColor:"#fff",
     alignSelf:"center",
     borderRadius:8
