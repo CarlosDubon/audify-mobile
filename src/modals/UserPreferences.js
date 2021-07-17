@@ -5,8 +5,10 @@ import { colors } from "../theme/colors";
 import React from "react";
 import { Picker } from "@react-native-picker/picker";
 import { StackActions, useNavigation } from "@react-navigation/native";
+import { updateToken } from "../redux/actions/user";
+import { connect } from "react-redux";
 
-const UserPreferences = ({show,onClose,onValueChange,value}) => {
+const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
   const navigation = useNavigation()
   return (
     <Modal
@@ -56,8 +58,10 @@ const UserPreferences = ({show,onClose,onValueChange,value}) => {
                     color:colors.light
                   }}
                   onPress={()=>{
-                    navigation.dispatch(StackActions.popToTop())
-                    navigation.navigate("InitPage")
+                    updateToken(null)
+                    navigation.dispatch(
+                      StackActions.replace('InitPage' )
+                    );
                   }}
 
           >
@@ -78,5 +82,7 @@ const Styles = StyleSheet.create({
   }
 
 })
-
-export default UserPreferences;
+const mapDispatchToProps={
+  updateToken
+}
+export default connect(null,mapDispatchToProps) (UserPreferences);

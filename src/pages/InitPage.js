@@ -1,13 +1,22 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { View, StyleSheet, Image, Dimensions, Pressable, ScrollView } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { StackActions, useNavigation } from "@react-navigation/native";
 import { Button, Paragraph, Text } from "react-native-paper";
 import Icon  from "react-native-vector-icons/FontAwesome";
 import Preferences from "../modals/Preferences";
+import { connect } from "react-redux";
 
 const InitPage = (props) => {
   const navigation = useNavigation()
   const [showPreferences,setShowPreferences]=useState(false)
+  useLayoutEffect(()=>{
+    console.log(props.token)
+    if(props.token){
+      navigation.dispatch(
+        StackActions.replace('MapPage' )
+      );
+    }
+  },[])
   return (
     <ScrollView style={Styles.container}>
       <View style={{alignItems:"flex-end"}}>
@@ -107,4 +116,7 @@ const Styles = StyleSheet.create({
   }
 
 })
-export default InitPage;
+const mapStateToProps=(state)=>({
+  token:state.user.token,
+})
+export default connect(mapStateToProps) (InitPage);

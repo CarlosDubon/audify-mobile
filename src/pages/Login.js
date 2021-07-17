@@ -30,7 +30,7 @@ const Login = (props) => {
         if(res.status===200){
           setLoading(false)
           props.updateToken(res.data.token)
-          navigation.navigate("InitConnection")
+          navigation.navigate("MapPage")
         }
         if(res.status === 409){
           Toast.show({
@@ -141,6 +141,6 @@ const dispatchStateToProps={
   updateToken
 }
 const mapStateToProps=(state)=>({
-  server:state.config.server
+  server:state.config.server,
 })
 export default connect(mapStateToProps,dispatchStateToProps) (Login);
