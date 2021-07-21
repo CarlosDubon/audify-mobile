@@ -50,7 +50,7 @@ const UserPreferences = ({show,onClose,onValueChange,onValueSourceChange,soruceV
           <View style={{marginTop:16}}>
             <Text>Cantidad de fuentes:</Text>
             <Picker selectedValue={soruceValue}
-                    onValueSourceChange={text=>onValueChange(text)}
+                    onValueChange={text=>onValueSourceChange(text)}
             >
               <Picker.Item label={"1 fuente"} value={0} />
               <Picker.Item label={"2 fuente"} value={1} />
