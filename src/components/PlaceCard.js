@@ -18,6 +18,7 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
     }
     let tplayer=new Player(place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound)
     tplayer.looping=true
+    tplayer.volume = 0
     setPlayer(tplayer)
     if(playing===true){
       tplayer.play()
@@ -27,13 +28,14 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
     setDistance(getDistance(
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
       { latitude: place.latitude, longitude: place.longitude }))
-  },[mPosition,place])
+  },[mPosition,place,playing])
 
   useEffect(()=>{
     if(playing && distance > -1){
       player.volume = place.type.id === 0 ? getVolumeFromLinearDistance(distance, place.radius) : getVolumeFromExpDistance(distance, place.radius)
     }
-  },[distance])
+
+  },[distance,mPosition,playing])
 
   const playSound=()=>{
     player.looping = true
