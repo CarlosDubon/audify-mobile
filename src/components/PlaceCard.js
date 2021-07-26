@@ -1,20 +1,39 @@
-import React, { createRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
-import { Paragraph, Title, Text, Surface } from "react-native-paper";
+import { Paragraph, Surface, Text, Title } from "react-native-paper";
 import { getDistance } from "geolib";
 import { Player } from "@react-native-community/audio-toolkit";
 import LootieView from "lottie-react-native";
+import { getVolumeFromExpDistance, getVolumeFromLinearDistance } from "../utils";
 
 const PlaceCard = ({server,onSelect, mPosition, place }) => {
-  const [player,setPlayer] = useState(new Player(place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound))
+  const [player,setPlayer] = useState()
   const [playing,setPlaying] = useState(false)
   const [distance,setDistance] = useState(-1)
 
   useEffect(()=>{
+    if(player){
+      player.stop()
+      setPlayer(null)
+    }
+    let tplayer=new Player(place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound)
+    tplayer.looping=true
+    setPlayer(tplayer)
+    if(playing===true){
+      tplayer.play()
+    }
+  },[place])
+  useEffect(()=>{
     setDistance(getDistance(
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
       { latitude: place.latitude, longitude: place.longitude }))
-  },[mPosition])
+  },[mPosition,place])
+
+  useEffect(()=>{
+    if(playing && distance > -1){
+      player.volume = place.type.id === 0 ? getVolumeFromLinearDistance(distance, place.radius) : getVolumeFromExpDistance(distance, place.radius)
+    }
+  },[distance])
 
   const playSound=()=>{
     player.looping = true
@@ -29,25 +48,8 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
     setPlaying(!playing)
 
   }
-  useEffect(()=>{
-    if(playing && distance > -1){
-      let volume = getVolumeFromDistance(distance)
-      player.volume = volume
-    }
-  },[distance])
-  const convertRange = ( value, r1, r2 ) => {
-    return ( value - r1[ 0 ] ) * ( r2[ 1 ] - r2[ 0 ] ) / ( r1[ 1 ] - r1[ 0 ] ) + r2[ 0 ];
-  }
 
-  const clamp = (num, min, max) => {
-    console.log(min)
-    return Math.min(Math.max(num, min), max)
-  }
 
-  const getVolumeFromDistance = (d) => {
-    const converted = convertRange(d, [15,0], [0,1]);
-    return clamp(converted, 0, 1);
-  }
   return (
     <Pressable onPress={()=> {
       playSound()

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 import MapView, { Circle, Marker } from "react-native-maps";
 import Geolocation from "react-native-geolocation-service";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -8,63 +8,82 @@ import { connect } from "react-redux";
 import UserPreferences from "../modals/UserPreferences";
 import axios from "axios";
 import PlacesContainer from "../components/PlacesContainer";
+import { io } from "socket.io-client";
 
 const MapPage = (props) => {
   const [myPosition, setMyPosition] = useState(null);
-  const [compassHeading, setCompassHeading] = useState(0);
   const [audioType,setAudioType]=useState(1)
   const [show,setShow] = useState(false)
   const [enabled,setEnabled] =useState(false)
   const [places,setPlaces] = useState([])
 
-  const [selectedPlaces,setSelectedPlaces]=useState([])
+  const [update, setUpdate] = useState(false);
+  const [selectedPlaces, setSelectedPlaces] = useState([]);
 
   useEffect(() => {
-    try {
-      Geolocation.watchPosition(position => {
-        setMyPosition({
-          longitude:position.coords.longitude,
-          latitude:position.coords.latitude,
-          latitudeDelta: 0.0009,
-          longitudeDelta: 0.0009,
-        });
-      }, error => {
-        console.log(error);
-      },{
-        enableHighAccuracy:true,
-        distanceFilter:1.5
+    Geolocation.getCurrentPosition(position => setMyPosition({
+      longitude: position.coords.longitude,
+      latitude: position.coords.latitude,
+      latitudeDelta: 0.0009,
+      longitudeDelta: 0.0009,
+    }), error => {
+      console.log(error);
+    });
+
+    Geolocation.watchPosition(position => {
+      setMyPosition({
+        longitude: position.coords.longitude,
+        latitude: position.coords.latitude,
+        latitudeDelta: 0.0009,
+        longitudeDelta: 0.0009,
       });
-    } catch (e) {
-      console.log(e);
-    }
+    }, error => {
+      console.log(error);
+    }, {
+      enableHighAccuracy: true,
+      distanceFilter: 1,
+    });
+
   }, []);
 
-
-
+  useEffect(() => {
+    fetchPlaces();
+  }, []);
 
   useEffect(() => {
-    if(enabled){
-      try {
-        console.log({ lat : myPosition?.latitude, long: myPosition?.longitude,rot:compassHeading,option:audioType })
+    let socket = io("http://147.182.171.70",{
+      auth: {
+        token: props.token
+      },
+      autoConnect:true,
+      path:"/api/socket.io"
 
-      }catch (e){
-        console.log(e)
+    });
+    console.log(socket)
+    socket.on("connect", () => {
+      console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+    });
+    socket.on("speaker_update",(data)=>{
+      if(data){
+        console.log("Tick!")
+        fetchPlaces();
       }
+
+    });
+
+    return()=>{
+      socket.disconnect()
     }
 
-  }, [myPosition,compassHeading,audioType]);
+  }, []);
 
-  useEffect(()=>{
-    fetchPlaces()
-  },[])
-
-  const onSelectPlace=(place,isAdd)=>{
-    if(isAdd){
-      setSelectedPlaces([...selectedPlaces,place])
-    }else{
-      setSelectedPlaces(selectedPlaces.filter(tplace=>tplace._id !==place._id))
+  const onSelectPlace = (place, isAdd) => {
+    if (isAdd) {
+      setSelectedPlaces([...selectedPlaces, place._id]);
+    } else {
+      setSelectedPlaces(selectedPlaces.filter(tplace => tplace !== place._id));
     }
-  }
+  };
 
 
   const fetchPlaces=async ()=>{
@@ -79,7 +98,9 @@ const MapPage = (props) => {
       console.log(e)
     }
   }
-
+  const getReferencePlace=(id)=>{
+    return places.find(p=>p._id===id)
+  }
   if (!myPosition) {
     return <></>;
   }
@@ -94,16 +115,23 @@ const MapPage = (props) => {
 
       >
         {
-          selectedPlaces.map(place=> (
-            <>
-              <Marker coordinate={{latitude:place.latitude,longitude:place.longitude}} />
-              <Circle center={{latitude:place.latitude,longitude:place.longitude}}
-                      radius={place.radius}
-                      fillColor={"rgba(45, 52, 54,0.5)"}
-                      strokeColor={"rgba(45, 52, 54,1.0)"} />
-            </>
+          selectedPlaces.map((mPlace, i) => {
+            const place = getReferencePlace(mPlace)
+            return(
+              <View key={i}>
+                <Marker
 
-          ))
+                  coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
+                  <Image source={require("../theme/images/audify.png")} style={{ width: 20, height: 20 }} />
+                </Marker>
+                <Circle center={{ latitude: place.latitude, longitude: place.longitude }}
+                        radius={place.radius}
+                        fillColor={"rgba(45, 52, 54,0.3)"}
+                        strokeColor={"rgba(45, 52, 54,0.5)"} />
+              </View>
+              )
+
+        })
         }
 
 

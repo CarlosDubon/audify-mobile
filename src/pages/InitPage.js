@@ -28,7 +28,7 @@ const InitPage = (props) => {
       </View>
       <View style={Styles.bannerContainer}>
         <Image style={Styles.banner}
-               source={require("../theme/images/principalBanner.png")} />
+               source={require("../theme/images/audify-negativo.png")} />
       </View>
       <View style={Styles.content}>
        <View>
@@ -71,8 +71,7 @@ const Styles = StyleSheet.create({
   banner:{
     width:Dimensions.get("window").width,
     height:250,
-    resizeMode:"cover",
-    borderRadius:30
+    resizeMode:"contain",
   },
   content:{
     padding:32,

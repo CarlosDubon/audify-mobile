@@ -21,7 +21,7 @@ const Login = (props) => {
   const submit=async ()=>{
     if(user!=="" && password!==""){
       try{
-        console.log(props.server)
+        console.log(`${props.server}/auth/signin`)
         setLoading(true)
         let res = await axios.post(`${props.server}/auth/signin`,{
           username:user,
