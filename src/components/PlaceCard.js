@@ -11,7 +11,7 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
   const [player,setPlayer] = useState()
   const [playing,setPlaying] = useState(false)
   const [distance,setDistance] = useState(-1)
-
+  const animation = useRef()
   useEffect(()=>{
     let tState;
     setPlaying(prevState => {
@@ -66,15 +66,16 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
     setPlaying(!playing)
 
   }
-
   const getSoundResource = (place, distance) => {
     const volume = getVolume(place, distance);
 
-    if(volume === 0) return "../theme/animation/sound-stopped.json";
-    if(volume > 0 && volume <= 0.33) return "../theme/animation/sound-red.json";
-    if(volume > 0.33 && volume <= 0.67) return "../theme/animation/sound-orange.json";
-    if(volume > 0.67) return "../theme/animation/sound-green.json";
+    if(volume === 0) return require("../theme/animation/sound-stopped.json");
+    if(volume > 0 && volume <= 0.33) return require("../theme/animation/sound-red.json");
+    if(volume > 0.33 && volume <= 0.67) return require ("../theme/animation/sound-orange.json");
+    if(volume > 0.67) return require ("../theme/animation/sound-green.json");
   }
+
+
 
   return (
     <Pressable onPress={()=> {
@@ -104,13 +105,15 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
           {playing&&(
             <View>
               <LootieView
+                ref={animation}
                 autoPlay
                 loop
+                speed={1.5}
                 style={{
                   width:30,
                   height:30
                 }}
-                source={require(getSoundResource(place, distance))} />
+                source={getSoundResource(place, distance)} />
             </View>
           )}
         </View>
