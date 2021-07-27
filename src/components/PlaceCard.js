@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { Paragraph, Surface, Text, Title } from "react-native-paper";
@@ -20,10 +21,16 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
     tplayer.looping=true
     tplayer.volume = 0
     setPlayer(tplayer)
-    if(playing===true){
-      tplayer.play()
+    if (playing === true) {
+      tplayer.play();
     }
-  },[place])
+
+    return () => {
+      if (player) {
+        player.stop();
+      }
+    };
+  }, [place]);
   useEffect(()=>{
     setDistance(getDistance(
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
