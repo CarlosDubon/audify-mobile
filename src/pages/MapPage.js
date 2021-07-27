@@ -117,8 +117,11 @@ const MapPage = (props) => {
         {
           selectedPlaces.map((mPlace, i) => {
             const place = getReferencePlace(mPlace)
+            if(!place){
+              return <></>
+            }
             return(
-              <View key={i}>
+              <View key={place._id}>
                 <Marker
 
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>

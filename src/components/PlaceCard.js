@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { Paragraph, Surface, Text, Title } from "react-native-paper";
 import { getDistance } from "geolib";
@@ -13,24 +13,29 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
   const [distance,setDistance] = useState(-1)
 
   useEffect(()=>{
+    let tState;
+    setPlaying(prevState => {
+      if(prevState){
+        tState = prevState
+        return prevState
+      }
+      tState = prevState
+      return false
+    })
     if(player){
       player.stop()
       setPlayer(null)
     }
     let tplayer=new Player(place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound)
     tplayer.looping=true
-    tplayer.volume = 0
     setPlayer(tplayer)
-    if (playing === true) {
+    tplayer.volume = getVolume(place,distance)
+    if (tState === true) {
       tplayer.play();
     }
-
-    return () => {
-      if (player) {
-        player.stop();
-      }
-    };
   }, [place]);
+
+
   useEffect(()=>{
     setDistance(getDistance(
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
@@ -39,11 +44,15 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
 
   useEffect(()=>{
     if(playing && distance > -1){
-      player.volume = place.type.id === 0 ? getVolumeFromLinearDistance(distance, place.radius) : getVolumeFromExpDistance(distance, place.radius)
+      player.volume = getVolume(place,distance)
     }
 
   },[distance,mPosition,playing])
 
+  const getVolume=(place,distance)=>{
+    return place.type.id === 0 ? getVolumeFromLinearDistance(distance, place.radius) : getVolumeFromExpDistance(distance, place.radius)
+
+  }
   const playSound=()=>{
     player.looping = true
 
