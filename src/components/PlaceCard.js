@@ -67,6 +67,14 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
 
   }
 
+  const getSoundResource = (place, distance) => {
+    const volume = getVolume(place, distance);
+
+    if(volume === 0) return "../theme/animation/sound-stopped.json";
+    if(volume > 0 && volume <= 0.33) return "../theme/animation/sound-red.json";
+    if(volume > 0.33 && volume <= 0.67) return "../theme/animation/sound-orange.json";
+    if(volume > 0.67) return "../theme/animation/sound-green.json";
+  }
 
   return (
     <Pressable onPress={()=> {
@@ -102,7 +110,7 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
                   width:30,
                   height:30
                 }}
-                source={require("../theme/animation/sound.json")} />
+                source={require(getSoundResource(place, distance))} />
             </View>
           )}
         </View>
