@@ -3,37 +3,28 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { Paragraph, Surface, Text, Title } from "react-native-paper";
 import { getDistance, getRhumbLineBearing } from "geolib";
-import { Player } from "@react-native-community/audio-toolkit";
 import LootieView from "lottie-react-native";
 import { getVolumeFromExpDistance, getVolumeFromLinearDistance,getBalanceFromAngles } from "../utils";
+import Audio from 'react-native-video';
+
 
 const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
-  const [player,setPlayer] = useState()
-  const [playing,setPlaying] = useState(false)
   const [distance,setDistance] = useState(-1)
+  
+  //Audio controls
+  const [playing,setPlaying] = useState(false)
   const animation = useRef()
   
+
   useEffect(()=>{
-    let tState;
     setPlaying(prevState => {
       if(prevState){
-        tState = prevState
         return prevState
       }
-      tState = prevState
       return false
     })
-    if(player){
-      player.stop()
-      setPlayer(null)
-    }
-    let tplayer=new Player(place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound)
-    tplayer.looping=true
-    setPlayer(tplayer)
-    tplayer.volume = getVolume(place,distance)
-    if (tState === true) {
-      tplayer.play();
-    }
+   
+    
   }, [place]);
 
 
@@ -42,16 +33,6 @@ const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
       { latitude: place.latitude, longitude: place.longitude }))
   },[mPosition,place,playing])
-
-  useEffect(()=>{
-    if(playing && distance > -1){
-      player.volume = getVolume(place,distance);
-      console.log("BALANCE: ", getBalance(mPosition, place, compassHeading));
-    }
-    
-
-  },[distance, mPosition, playing, compassHeading])
-
 
   const getBalance=(mPosition, place, mCompassHeading) => {
     let userToPlaceAngle= getRhumbLineBearing(
@@ -71,13 +52,10 @@ const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
 
 
   const playSound=()=>{
-    player.looping = true
 
     if(playing){
-      player.pause()
       onSelect(place,false)
     }else {
-      player.play()
       onSelect(place,true)
     }
     setPlaying(!playing)
@@ -91,7 +69,6 @@ const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
     if(volume > 0.33 && volume <= 0.67) return require ("../theme/animation/sound-orange.json");
     if(volume > 0.67) return require ("../theme/animation/sound-green.json");
   }
-
 
 
   return (
@@ -116,6 +93,15 @@ const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
           justifyContent:playing?"space-around":"flex-start",
           alignItems:"center"
         }}>
+          <Audio
+            source={{uri:place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound}}
+            audioOnly
+            controls={false}
+            repeat
+            paused={!playing} 
+            volume={playing?getVolume(place, distance):0}
+            stereoPan={playing?getBalance(mPosition, place, compassHeading) : 0}
+          />
           <Title style={{ paddingTop: 4 }}>
             {place.name}
           </Title>
