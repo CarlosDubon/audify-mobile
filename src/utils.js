@@ -13,6 +13,30 @@ export const getVolumeFromLinearDistance = (d,max) => {
 const expFunction=(d,max)=>{
   return Math.exp(-d/max)
 }
+
+/**
+ * @param tetha user compass reference (North)
+ * @param alpha user to place angle reference (North)
+ */
+const rotateRefAngle = (tetha, alpha) => {
+  const beta = alpha - tetha;
+  return beta >= 0 ? beta : 360 - beta;
+}
+
+const degrees_to_radians=(degrees)=>
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
+
+export const getBalanceFromAngles = (mCompassHeading, placeHeading) => {
+  const placeRotatedAngle = degrees_to_radians(
+    rotateRefAngle(mCompassHeading, placeHeading)
+  );
+  
+  return Math.sin(placeRotatedAngle);
+} 
+
 export const getVolumeFromExpDistance=(d,max)=>{
   const nMax = expFunction(max,max)
   const nMin = expFunction(0,max)

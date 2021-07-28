@@ -9,6 +9,7 @@ import UserPreferences from "../modals/UserPreferences";
 import axios from "axios";
 import PlacesContainer from "../components/PlacesContainer";
 import { io } from "socket.io-client";
+import CompassHeading from "react-native-compass-heading";
 
 const MapPage = (props) => {
   const [myPosition, setMyPosition] = useState(null);
@@ -19,6 +20,21 @@ const MapPage = (props) => {
 
   const [update, setUpdate] = useState(false);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
+
+  const [compassHeading, setCompassHeading] = useState(0);
+
+  useEffect(() => {
+    const degree_update_rate = 3;
+
+    CompassHeading.start(degree_update_rate, ({heading, accuracy}) => {
+      setCompassHeading(heading);
+      console.log("compass",heading)
+    })
+
+    return () => {
+      CompassHeading.stop();
+    };
+  }, []);
 
   useEffect(() => {
     Geolocation.getCurrentPosition(position => setMyPosition({
@@ -39,9 +55,6 @@ const MapPage = (props) => {
       });
     }, error => {
       console.log(error);
-    }, {
-      enableHighAccuracy: true,
-      distanceFilter: 1,
     });
 
   }, []);
@@ -125,8 +138,9 @@ const MapPage = (props) => {
                 <Marker
 
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
-                  <Image source={require("../theme/images/audify.png")} style={{ width: 20, height: 20 }} />
+
                 </Marker>
+
                 <Circle center={{ latitude: place.latitude, longitude: place.longitude }}
                         radius={place.radius}
                         fillColor={"rgba(45, 52, 54,0.3)"}
@@ -146,7 +160,7 @@ const MapPage = (props) => {
         </Pressable>
       </View>
       <UserPreferences show={show} onClose={()=>setShow(false)} onValueChange={setAudioType} value={audioType} />
-      <PlacesContainer places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.socket} />
+      <PlacesContainer compassHeading={compassHeading} places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.socket} />
     </View>
   );
 

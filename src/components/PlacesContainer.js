@@ -12,7 +12,7 @@ const PlacesContainer = (props) => {
       width:Dimensions.get("window").width,
       marginBottom:16
     }}>
-      {props.places.map((place,i)=>(<PlaceCard onSelect={props.onSelect} place={place} mPosition={props.mPosition} key={i} server={props.server} />))}
+      {props.places.map((place,i)=>(<PlaceCard compassHeading={props.compassHeading} onSelect={props.onSelect} place={place} mPosition={props.mPosition} key={i} server={props.server} />))}
     </ScrollView>
   );
 };

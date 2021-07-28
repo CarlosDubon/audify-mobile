@@ -1,17 +1,18 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/exhaustive-deps */   
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { Paragraph, Surface, Text, Title } from "react-native-paper";
-import { getDistance } from "geolib";
+import { getDistance, getRhumbLineBearing } from "geolib";
 import { Player } from "@react-native-community/audio-toolkit";
 import LootieView from "lottie-react-native";
-import { getVolumeFromExpDistance, getVolumeFromLinearDistance } from "../utils";
+import { getVolumeFromExpDistance, getVolumeFromLinearDistance,getBalanceFromAngles } from "../utils";
 
-const PlaceCard = ({server,onSelect, mPosition, place }) => {
+const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
   const [player,setPlayer] = useState()
   const [playing,setPlaying] = useState(false)
   const [distance,setDistance] = useState(-1)
   const animation = useRef()
+  
   useEffect(()=>{
     let tState;
     setPlaying(prevState => {
@@ -44,15 +45,31 @@ const PlaceCard = ({server,onSelect, mPosition, place }) => {
 
   useEffect(()=>{
     if(playing && distance > -1){
-      player.volume = getVolume(place,distance)
+      player.volume = getVolume(place,distance);
+      console.log("BALANCE: ", getBalance(mPosition, place, compassHeading));
     }
+    
 
-  },[distance,mPosition,playing])
+  },[distance, mPosition, playing, compassHeading])
+
+
+  const getBalance=(mPosition, place, mCompassHeading) => {
+    let userToPlaceAngle= getRhumbLineBearing(
+      { latitude: mPosition.latitude, longitude: mPosition.longitude },
+      { latitude: place.latitude, longitude: place.longitude })
+      
+      console.log("MY COMPASS:", mCompassHeading);
+      console.log("USER TO PLACE COMPASS:",userToPlaceAngle );
+     
+      return getBalanceFromAngles(mCompassHeading,userToPlaceAngle)
+  }
 
   const getVolume=(place,distance)=>{
     return place.type.id === 0 ? getVolumeFromLinearDistance(distance, place.radius) : getVolumeFromExpDistance(distance, place.radius)
 
   }
+
+
   const playSound=()=>{
     player.looping = true
 
