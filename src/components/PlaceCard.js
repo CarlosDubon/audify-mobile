@@ -1,48 +1,59 @@
-/* eslint-disable react-hooks/exhaustive-deps */   
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { Paragraph, Surface, Text, Title } from "react-native-paper";
 import { getDistance, getRhumbLineBearing } from "geolib";
 import LootieView from "lottie-react-native";
-import { getVolumeFromExpDistance, getVolumeFromLinearDistance,getBalanceFromAngles } from "../utils";
-import Audio from 'react-native-video';
+import { getBalanceFromAngles, getVolumeFromExpDistance, getVolumeFromLinearDistance } from "../utils";
+import Audio from "react-native-video";
 
 
-const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
-  const [distance,setDistance] = useState(-1)
-  
+const PlaceCard = ({ server, onSelect, mPosition, place, compassHeading }) => {
+  const [distance, setDistance] = useState(-1);
+  const [volume, setVolume] = useState(0);
+  const [balance, setBalance] = useState(0);
   //Audio controls
-  const [playing,setPlaying] = useState(false)
-  const animation = useRef()
-  
+  const [playing, setPlaying] = useState(false);
+  const animation = useRef();
 
-  useEffect(()=>{
+
+  useEffect(() => {
     setPlaying(prevState => {
-      if(prevState){
-        return prevState
+      if (prevState) {
+        return prevState;
       }
       return false
     })
-   
-    
+
+
   }, [place]);
 
 
-  useEffect(()=>{
-    setDistance(getDistance(
+  useEffect(() => {
+    const tDistance = getDistance(
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
-      { latitude: place.latitude, longitude: place.longitude }))
-  },[mPosition,place,playing])
+      { latitude: place.latitude, longitude: place.longitude },
+    );
+
+    setDistance(tDistance);
+    setVolume(getVolume(place, tDistance));
+  }, [mPosition, place, playing])
+
+  useEffect(()=>{
+    setBalance(getBalance(mPosition, place, compassHeading));
+  },[compassHeading])
 
   const getBalance=(mPosition, place, mCompassHeading) => {
-    let userToPlaceAngle= getRhumbLineBearing(
+    let userToPlaceAngle = getRhumbLineBearing(
       { latitude: mPosition.latitude, longitude: mPosition.longitude },
-      { latitude: place.latitude, longitude: place.longitude })
-      
-      console.log("MY COMPASS:", mCompassHeading);
-      console.log("USER TO PLACE COMPASS:",userToPlaceAngle );
-     
-      return getBalanceFromAngles(mCompassHeading,userToPlaceAngle)
+      { latitude: place.latitude, longitude: place.longitude });
+    let balance = getBalanceFromAngles(mCompassHeading, userToPlaceAngle);
+
+    console.log("MY COMPASS:", mCompassHeading);
+    console.log("PLACE ANGLE:", userToPlaceAngle);
+    console.log("Balance:", balance);
+
+    return balance;
   }
 
   const getVolume=(place,distance)=>{
@@ -94,13 +105,13 @@ const PlaceCard = ({server,onSelect, mPosition, place, compassHeading }) => {
           alignItems:"center"
         }}>
           <Audio
-            source={{uri:place.sound.startsWith("/uploads")?`${server}${place.sound}`:place.sound}}
+            source={{ uri: place.sound.startsWith("/uploads") ? `${server}${place.sound}` : place.sound }}
             audioOnly
             controls={false}
             repeat
-            paused={!playing} 
-            volume={playing?getVolume(place, distance):0}
-            stereoPan={playing?getBalance(mPosition, place, compassHeading) : 0}
+            paused={!playing}
+            volume={volume}
+            stereoPan={balance}
           />
           <Title style={{ paddingTop: 4 }}>
             {place.name}

@@ -24,11 +24,10 @@ const MapPage = (props) => {
   const [compassHeading, setCompassHeading] = useState(0);
 
   useEffect(() => {
-    const degree_update_rate = 3;
+    const degree_update_rate = 5;
 
     CompassHeading.start(degree_update_rate, ({heading, accuracy}) => {
       setCompassHeading(heading);
-      console.log("compass",heading)
     })
 
     return () => {
@@ -44,6 +43,9 @@ const MapPage = (props) => {
       longitudeDelta: 0.0009,
     }), error => {
       console.log(error);
+    },{
+      enableHighAccuracy: true,
+      distanceFilter: 1,
     });
 
     Geolocation.watchPosition(position => {
@@ -55,6 +57,9 @@ const MapPage = (props) => {
       });
     }, error => {
       console.log(error);
+    }, {
+      enableHighAccuracy: true,
+      distanceFilter: 1,
     });
 
   }, []);
@@ -138,7 +143,7 @@ const MapPage = (props) => {
                 <Marker
 
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
-
+                  <Image source={require("../theme/images/audify.png")} style={{ width: 20, height: 20 }} />
                 </Marker>
 
                 <Circle center={{ latitude: place.latitude, longitude: place.longitude }}

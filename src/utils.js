@@ -20,7 +20,7 @@ const expFunction=(d,max)=>{
  */
 const rotateRefAngle = (tetha, alpha) => {
   const beta = alpha - tetha;
-  return beta >= 0 ? beta : 360 - beta;
+  return beta;
 }
 
 const degrees_to_radians=(degrees)=>
@@ -33,9 +33,9 @@ export const getBalanceFromAngles = (mCompassHeading, placeHeading) => {
   const placeRotatedAngle = degrees_to_radians(
     rotateRefAngle(mCompassHeading, placeHeading)
   );
-  
+
   return Math.sin(placeRotatedAngle);
-} 
+}
 
 export const getVolumeFromExpDistance=(d,max)=>{
   const nMax = expFunction(max,max)
