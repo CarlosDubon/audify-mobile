@@ -118,35 +118,6 @@ const MapPage = (props) => {
   }, []);
 
   useEffect(() => {
-    Geolocation.getCurrentPosition(position => setMyPosition({
-      longitude: position.coords.longitude,
-      latitude: position.coords.latitude,
-      latitudeDelta: 0.0009,
-      longitudeDelta: 0.0009,
-    }), error => {
-      console.log(error);
-    },{
-      enableHighAccuracy: true,
-      distanceFilter: 1,
-    });
-
-    Geolocation.watchPosition(position => {
-      setMyPosition({
-        longitude: position.coords.longitude,
-        latitude: position.coords.latitude,
-        latitudeDelta: 0.0009,
-        longitudeDelta: 0.0009,
-      });
-    }, error => {
-      console.log(error);
-    }, {
-      enableHighAccuracy: true,
-      distanceFilter: 1,
-    });
-
-  }, []);
-
-  useEffect(() => {
     fetchPlaces();
   }, []);
 
