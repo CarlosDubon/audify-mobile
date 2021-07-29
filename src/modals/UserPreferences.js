@@ -35,20 +35,6 @@ const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
           </Pressable>
         </View>
         <View style={{
-          flex:1,
-          padding:16
-        }}>
-          <View>
-            <Text>Tipo de modulación de audio:</Text>
-            <Picker selectedValue={value}
-                    onValueChange={text=>onValueChange(text)}
-            >
-              <Picker.Item label={"Opcion 1"} value={1} />
-              <Picker.Item label={"Opcion 2"} value={2} />
-            </Picker>
-          </View>
-        </View>
-        <View style={{
           margin:16
         }}>
           <Button contentStyle={{
@@ -75,7 +61,7 @@ const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
 const Styles = StyleSheet.create({
   mainContainer:{
     width:Dimensions.get("window").width - Dimensions.get("window").width/8,
-    height:250,
+    height:150,
     backgroundColor:"#fff",
     alignSelf:"center",
     borderRadius:8

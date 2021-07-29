@@ -23,5 +23,5 @@ const store = createStore(
   applyMiddleware(createLogger()),
 );
 
-export const persistor = persistStore(store);
-export default store;
+const persistor = persistStore(store);
+export { store,persistor };
