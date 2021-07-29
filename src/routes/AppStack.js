@@ -7,9 +7,10 @@ import InitPage from "../pages/InitPage";
 import Login from "../pages/Login";
 import { configureFonts, DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import SignUp from "../pages/SignUp";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
-import store from "../redux/storage/storage";
+import { persistor, store } from "../redux/storage/storage";
+import {PersistGate} from 'redux-persist/integration/react';
 
 const Stack = createStackNavigator();
 
@@ -74,7 +75,8 @@ const AppStack = () => {
   };
   return (
     <Provider store={store}>
-      <PaperProvider theme={theme}>
+      <PersistGate loading={null} persistor={persistor}>
+        <PaperProvider theme={theme}>
           <NavigationContainer>
             <Stack.Navigator
               headerMode={"none"}
@@ -87,7 +89,8 @@ const AppStack = () => {
             </Stack.Navigator>
           </NavigationContainer>
           <Toast ref={(ref) => Toast.setRef(ref)} />
-      </PaperProvider>
+        </PaperProvider>
+      </PersistGate>
     </Provider>
   );
 };

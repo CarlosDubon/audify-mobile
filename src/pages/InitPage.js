@@ -1,10 +1,11 @@
-import React, { useLayoutEffect, useState } from "react";
-import { View, StyleSheet, Image, Dimensions, Pressable, ScrollView } from "react-native";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { View, StyleSheet, Image, Dimensions, Pressable, ScrollView, PermissionsAndroid } from "react-native";
 import { StackActions, useNavigation } from "@react-navigation/native";
 import { Button, Paragraph, Text } from "react-native-paper";
 import Icon  from "react-native-vector-icons/FontAwesome";
 import Preferences from "../modals/Preferences";
 import { connect } from "react-redux";
+import Toast from 'react-native-toast-message';
 
 const InitPage = (props) => {
   const navigation = useNavigation()
@@ -17,6 +18,25 @@ const InitPage = (props) => {
       );
     }
   },[])
+  useEffect(()=>{
+    requestPermissions()
+  },[])
+
+  const requestPermissions=async ()=>{
+    const req = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+    const granted = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
+    if(granted){
+
+    }else{
+      Toast.show({
+        type:"info",
+        text1:"Por favor permitir el acceso de ubicación a la aplicación",
+        text2:"La exepriencia de la aplicación se basa en el uso de la ubicación.",
+        visibilityTime:2000
+      })
+      requestPermissions()
+    }
+  }
   return (
     <ScrollView style={Styles.container}>
       <View style={{alignItems:"flex-end"}}>
