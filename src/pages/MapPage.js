@@ -11,7 +11,7 @@ import axios from 'axios';
 import PlacesContainer from '../components/PlacesContainer';
 import { io } from 'socket.io-client';
 import CompassHeading from 'react-native-compass-heading';
-import { getDistance, getRhumbLineBearing } from 'geolib';
+import { getDistance, getPreciseDistance, getRhumbLineBearing } from "geolib";
 import { getEarthAngleFromArc, getGeoVelocityComponents, getNewPosition } from '../utils';
 
 const MapPage = (props) => {
@@ -19,12 +19,28 @@ const MapPage = (props) => {
   const [show,setShow] = useState(false);
   const [places,setPlaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
-  
-  const [enabled,setEnabled] = useState(false);
-  const [update, setUpdate] = useState(false);
-  
+
+
   const [myPosition, setMyPosition] = useState(null);
+  const [zoomDelta,setDelta]=useState({
+    latitudeDelta: 0.0009,
+    longitudeDelta: 0.0009,
+  })
+
   const [compassHeading, setCompassHeading] = useState(0);
+
+  //Smoth variables
+  const SECONDS = 1; //Time in seconds
+  const MIN_DISTANCE = 1; //Meters
+
+  const SHORT_DISTANCE = 10;
+  const MEDIUM_DISTANCE = 35;
+  const LARGE_DISTANCE = 75;
+
+  const DELTA_SHORT = 1;
+  const DELTA_MEDIUM = 2.22;
+  const DELTA_LARGE = 4.15;
+
 
   useEffect(() => {
     const degree_update_rate = 5;
@@ -39,25 +55,19 @@ const MapPage = (props) => {
   }, []);
 
   useEffect(() => {
-    const SECONDS = 1; //Time in seconds
-    const MIN_DISTANCE = 1; //Meters
-    
-    const SHORT_DISTANCE = 10;
-    const MEDIUM_DISTANCE = 35;
-    const LARGE_DISTANCE = 75;
 
-    const DELTA_SHORT = 1.3;
-    const DELTA_MEDIUM = 2.22;
-    const DELTA_LARGE = 4.15;
+    const positionInterval = setInterval(myPositionCallback,SECONDS * 1000)
+    return ()=>{
+      clearInterval(positionInterval);
+    }
+  }, []);
 
-    const positionInterval = setInterval(() => {
-      Geolocation.getCurrentPosition(position => {
+  const myPositionCallback=() => {
+    Geolocation.getCurrentPosition(position => {
         if (!myPosition) {
           setMyPosition({
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
-            latitudeDelta: 0.0009,
-            longitudeDelta: 0.0009,
           });
           return;
         }
@@ -71,16 +81,18 @@ const MapPage = (props) => {
           longitude: myPosition.longitude,
           latitude: myPosition.latitude,
         };
+        console.log("Previus:",previous)
+        console.log("Current:",current)
 
-        const distanceDiff = getDistance(previous, current, 0.01);
+        const distanceDiff = getDistance(previous, current, 0.1);
+        if (distanceDiff < MIN_DISTANCE) {
 
-        if (distanceDiff < MIN_DISTANCE) { return; }
+          return;
+        }
         if (distanceDiff > LARGE_DISTANCE) {
           setMyPosition({
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
-            latitudeDelta: 0.0009,
-            longitudeDelta: 0.0009,
           });
           return;
         }
@@ -103,24 +115,23 @@ const MapPage = (props) => {
         const deltaArc = getEarthAngleFromArc(deltaMeters);
         const velocityComponents = getGeoVelocityComponents(deltaArc, SECONDS, angle);
 
+        console.log("DistanceDif:",distanceDiff)
+        /*console.log("DeltaMeters:",deltaMeters)
+        console.log("Angulo:",angle)
+        console.log("velocity:",velocityComponents)*/
+        console.log("Delta arc",deltaArc)
         const newPosition = getNewPosition(previous, velocityComponents, SECONDS);
 
         setMyPosition({
           ...newPosition,
-          latitudeDelta: 0.0009,
-          longitudeDelta: 0.0009,
         });
+
       }, error => { console.log(error); },
-      { enableHighAccuracy: true, distanceFilter: 1 });
-    }, SECONDS * 1000);
-
-    return clearInterval(positionInterval);
-  }, []);
-
+      { distanceFilter: 3 });
+  }
   useEffect(() => {
     fetchPlaces();
   }, []);
-
   useEffect(() => {
     let socket = io('http://147.182.171.70',{
       auth: {
@@ -172,6 +183,7 @@ const MapPage = (props) => {
   const getReferencePlace = (id)=>{
     return places.find(p=>p._id === id);
   };
+
   if (!myPosition) {
     return <></>;
   }
@@ -180,9 +192,11 @@ const MapPage = (props) => {
       <MapView
         style={Style.map}
         showsUserLocation
-        region={myPosition}
+        region={{ ...myPosition,...zoomDelta }}
         loadingEnabled
         zoomEnabled
+        onRegionChangeComplete={region => setDelta({latitudeDelta: region.latitudeDelta,longitudeDelta: region.longitudeDelta})}
+        scrollEnabled={false}
 
       >
         {
