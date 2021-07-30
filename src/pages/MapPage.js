@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
-import MapView, { Circle, Marker } from 'react-native-maps';
+import { Image, Pressable, StyleSheet, View, Text } from 'react-native';
+import MapView, { Circle, Marker, Callout } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors';
@@ -11,7 +11,7 @@ import axios from 'axios';
 import PlacesContainer from '../components/PlacesContainer';
 import { io } from 'socket.io-client';
 import CompassHeading from 'react-native-compass-heading';
-import { getDistance, getPreciseDistance, getRhumbLineBearing } from "geolib";
+import { getDistance, getRhumbLineBearing } from "geolib";
 import { getEarthAngleFromArc, getGeoVelocityComponents, getNewPosition } from '../utils';
 
 const MapPage = (props) => {
@@ -30,16 +30,16 @@ const MapPage = (props) => {
   const [compassHeading, setCompassHeading] = useState(0);
 
   //Smoth variables
-  const SECONDS = 1; //Time in seconds
+  const SECONDS = 0.3; //Time in seconds
   const MIN_DISTANCE = 1; //Meters
 
   const SHORT_DISTANCE = 10;
-  const MEDIUM_DISTANCE = 35;
-  const LARGE_DISTANCE = 75;
+  const MEDIUM_DISTANCE = 50;
+  const LARGE_DISTANCE = 100;
 
-  const DELTA_SHORT = 1;
-  const DELTA_MEDIUM = 2.22;
-  const DELTA_LARGE = 4.15;
+  const DELTA_SHORT = 1.3 * SECONDS;
+  const DELTA_MEDIUM = 2 * SECONDS;
+  const DELTA_LARGE = 4 * SECONDS;
 
 
   useEffect(() => {
@@ -72,62 +72,62 @@ const MapPage = (props) => {
           return;
         }
 
-        const current = {
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-        };
-
-        const previous = {
-          longitude: myPosition.longitude,
-          latitude: myPosition.latitude,
-        };
-        console.log("Previus:",previous)
-        console.log("Current:",current)
-
-        const distanceDiff = getDistance(previous, current, 0.1);
-        if (distanceDiff < MIN_DISTANCE) {
-
-          return;
-        }
-        if (distanceDiff > LARGE_DISTANCE) {
-          setMyPosition({
+        setMyPosition(prev => {
+          const current = {
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
-          });
-          return;
-        }
+          };
 
-        let deltaMeters = 0;
-
-        if (distanceDiff > MIN_DISTANCE && distanceDiff <= SHORT_DISTANCE) {
-          deltaMeters = DELTA_SHORT;
-        }
-
-        if (distanceDiff > SHORT_DISTANCE && distanceDiff <= MEDIUM_DISTANCE) {
-          deltaMeters = DELTA_MEDIUM;
-        }
-
-        if (distanceDiff > MEDIUM_DISTANCE && distanceDiff <= LARGE_DISTANCE) {
-          deltaMeters = DELTA_LARGE;
-        }
-
-        const angle = getRhumbLineBearing(previous, current);
-        const deltaArc = getEarthAngleFromArc(deltaMeters);
-        const velocityComponents = getGeoVelocityComponents(deltaArc, SECONDS, angle);
-
-        console.log("DistanceDif:",distanceDiff)
-        /*console.log("DeltaMeters:",deltaMeters)
-        console.log("Angulo:",angle)
-        console.log("velocity:",velocityComponents)*/
-        console.log("Delta arc",deltaArc)
-        const newPosition = getNewPosition(previous, velocityComponents, SECONDS);
-
-        setMyPosition({
-          ...newPosition,
+        
+          const previous = prev || current;
+  
+          /* console.log("-------------------");
+          console.log("Position", position);
+          console.log("Previus:",previous)
+          console.log("Current:",current) */
+  
+          const distanceDiff = getDistance(previous, current, 0.01);
+          if (distanceDiff < MIN_DISTANCE) {
+            return current;
+          }
+          if (distanceDiff > LARGE_DISTANCE) {
+            return current;
+          } 
+  
+          let deltaMeters = 0;
+  
+          if (distanceDiff > MIN_DISTANCE && distanceDiff <= SHORT_DISTANCE) {
+            deltaMeters = DELTA_SHORT;
+          }
+  
+          if (distanceDiff > SHORT_DISTANCE && distanceDiff <= MEDIUM_DISTANCE) {
+            deltaMeters = DELTA_MEDIUM;
+          }
+  
+          if (distanceDiff > MEDIUM_DISTANCE && distanceDiff <= LARGE_DISTANCE) {
+            deltaMeters = DELTA_LARGE;
+          }
+  
+          const angle = getRhumbLineBearing(previous, current);
+          const deltaArc = getEarthAngleFromArc(deltaMeters);
+          const velocityComponents = getGeoVelocityComponents(deltaArc, SECONDS, angle);
+  
+          /* console.log("DistanceDif:",distanceDiff)
+          console.log("DeltaMeters:",deltaMeters)
+          console.log("Angulo:",angle)
+          console.log("velocity:",velocityComponents)
+          console.log("Delta arc",deltaArc) */
+  
+          const newPosition = getNewPosition(previous, velocityComponents, SECONDS);
+  
+          /* console.log("New Position", newPosition);
+          console.log("-------------------"); */
+  
+          return newPosition;
         });
 
       }, error => { console.log(error); },
-      { distanceFilter: 3 });
+      { distanceFilter: 1, enableHighAccuracy: true, forceRequestLocation: true });
   }
   useEffect(() => {
     fetchPlaces();
@@ -191,14 +191,28 @@ const MapPage = (props) => {
     <View style={Style.container}>
       <MapView
         style={Style.map}
-        showsUserLocation
         region={{ ...myPosition,...zoomDelta }}
         loadingEnabled
         zoomEnabled
         onRegionChangeComplete={region => setDelta({latitudeDelta: region.latitudeDelta,longitudeDelta: region.longitudeDelta})}
         scrollEnabled={false}
-
-      >
+        showsUserLocation>
+        <Marker
+          flat
+          anchor={{
+            x: 0.5,
+            y: 0.5
+          }}
+          coordinate={ myPosition }>
+          <Image source={require('../theme/images/arrow.png')} 
+            style={{
+              width: 32, 
+              height: 32,
+              transform: [
+                {rotate: `${- 360 + compassHeading}deg`}
+              ]
+            }} />
+        </Marker>
         {
           selectedPlaces.map((mPlace, i) => {
             const place = getReferencePlace(mPlace);
@@ -208,7 +222,6 @@ const MapPage = (props) => {
             return (
               <View key={place._id}>
                 <Marker
-
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
                   <Image source={require('../theme/images/audify.png')} style={{ width: 20, height: 20 }} />
                 </Marker>

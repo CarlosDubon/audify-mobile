@@ -41,7 +41,7 @@ const PlaceCard = ({ server, onSelect, mPosition, place, compassHeading }) => {
 
   useEffect(()=>{
     setBalance(getBalance(mPosition, place, compassHeading));
-  },[compassHeading])
+  },[compassHeading, mPosition, place])
 
   const getBalance=(mPosition, place, mCompassHeading) => {
     let userToPlaceAngle = getRhumbLineBearing(
@@ -49,9 +49,9 @@ const PlaceCard = ({ server, onSelect, mPosition, place, compassHeading }) => {
       { latitude: place.latitude, longitude: place.longitude });
     let balance = getBalanceFromAngles(mCompassHeading, userToPlaceAngle);
 
-    console.log("MY COMPASS:", mCompassHeading);
+    /* console.log("MY COMPASS:", mCompassHeading);
     console.log("PLACE ANGLE:", userToPlaceAngle);
-    console.log("Balance:", balance);
+    console.log("Balance:", balance); */
 
     return balance;
   }
