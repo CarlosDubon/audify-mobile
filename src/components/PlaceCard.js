@@ -81,6 +81,9 @@ const PlaceCard = ({ server, onSelect, mPosition, place, compassHeading }) => {
     if(volume > 0.67) return require ("../theme/animation/sound-green.json");
   }
 
+  if(distance > 1000) {
+    return <></>
+  }
 
   return (
     <Pressable onPress={()=> {
