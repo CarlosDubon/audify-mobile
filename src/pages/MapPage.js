@@ -245,7 +245,7 @@ const MapPage = (props) => {
               <View key={place._id}>
                 <Marker
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
-                  <Image source={require('../theme/images/audify.png')} style={{ width: 20, height: 20 }} />
+                  <Image source={require('../theme/images/signal.png')} style={{ width: 20, height: 20 }} />
                 </Marker>
 
                 <Circle center={{ latitude: place.latitude, longitude: place.longitude }}
