@@ -78,51 +78,51 @@ const MapPage = (props) => {
             latitude: position.coords.latitude,
           };
 
-        
+
           const previous = prev || current;
-  
+
           /* console.log("-------------------");
           console.log("Position", position);
           console.log("Previus:",previous)
           console.log("Current:",current) */
-  
+
           const distanceDiff = getDistance(previous, current, 0.01);
           if (distanceDiff < MIN_DISTANCE) {
             return current;
           }
           if (distanceDiff > LARGE_DISTANCE) {
             return current;
-          } 
-  
+          }
+
           let deltaMeters = 0;
-  
+
           if (distanceDiff > MIN_DISTANCE && distanceDiff <= SHORT_DISTANCE) {
             deltaMeters = DELTA_SHORT;
           }
-  
+
           if (distanceDiff > SHORT_DISTANCE && distanceDiff <= MEDIUM_DISTANCE) {
             deltaMeters = DELTA_MEDIUM;
           }
-  
+
           if (distanceDiff > MEDIUM_DISTANCE && distanceDiff <= LARGE_DISTANCE) {
             deltaMeters = DELTA_LARGE;
           }
-  
+
           const angle = getRhumbLineBearing(previous, current);
           const deltaArc = getEarthAngleFromArc(deltaMeters);
           const velocityComponents = getGeoVelocityComponents(deltaArc, SECONDS, angle);
-  
+
           /* console.log("DistanceDif:",distanceDiff)
           console.log("DeltaMeters:",deltaMeters)
           console.log("Angulo:",angle)
           console.log("velocity:",velocityComponents)
           console.log("Delta arc",deltaArc) */
-  
+
           const newPosition = getNewPosition(previous, velocityComponents, SECONDS);
-  
+
           /* console.log("New Position", newPosition);
           console.log("-------------------"); */
-  
+
           return newPosition;
         });
 
@@ -133,12 +133,12 @@ const MapPage = (props) => {
     fetchPlaces();
   }, []);
   useEffect(() => {
-    let socket = io('http://147.182.171.70',{
+    let socket = io('https://dei.uca.edu.sv',{
       auth: {
         token: props.token,
       },
       autoConnect:true,
-      path:'/api/socket.io',
+      path:'/sraag-server/socket.io',
 
     });
     console.log(socket);
@@ -204,9 +204,9 @@ const MapPage = (props) => {
             y: 0.5
           }}
           coordinate={ myPosition }>
-          <Image source={require('../theme/images/arrow.png')} 
+          <Image source={require('../theme/images/arrow.png')}
             style={{
-              width: 32, 
+              width: 32,
               height: 32,
               transform: [
                 {rotate: `${- 360 + compassHeading}deg`}
