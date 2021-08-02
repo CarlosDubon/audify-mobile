@@ -1,5 +1,5 @@
 import { Dimensions, Pressable, StyleSheet, View } from "react-native";
-import { Button, Modal, Text, TextInput } from "react-native-paper";
+import { Button, Modal, Text, Switch } from "react-native-paper";
 import Icon from "react-native-vector-icons/AntDesign";
 import { colors } from "../theme/colors";
 import React from "react";
@@ -34,23 +34,24 @@ const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
             <Icon name={"close"} color={colors.primary} size={28} style={{padding:8}} />
           </Pressable>
         </View>
-        <View style={{
-          margin:16
-        }}>
-          <Button contentStyle={{
-            backgroundColor:colors.primary,
-          }}
-                  labelStyle={{
-                    color:colors.light
-                  }}
-                  onPress={()=>{
-                    updateToken(null)
-                    navigation.dispatch(
-                      StackActions.replace('InitPage' )
-                    );
-                  }}
 
-          >
+        <View style={{ margin:16, flexDirection: "row" }}>
+            <Text> ¿Seguir al usuario? </Text>
+            <Switch/>
+        </View>
+
+        <View style={{ margin:16 }}>
+          <Button 
+            contentStyle={{ backgroundColor:colors.primary, }}
+            labelStyle={{
+              color:colors.light
+            }}
+            onPress={()=>{
+              updateToken(null)
+              navigation.dispatch(
+                StackActions.replace('InitPage' )
+              );
+            }}>
             Cerrar sesión
           </Button>
         </View>
