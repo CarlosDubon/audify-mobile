@@ -6,10 +6,14 @@ import { colors } from "../theme/colors";
 import { connect } from "react-redux";
 import { setServerURI } from "../redux/actions/config";
 
-const Preferences = ({setServerURI,server,show,onClose}) => {
-  const [serverText,setServerText] = useState(server)
+const Preferences = ({setServerURI,base,subfolder,show,onClose}) => {
+  const [basepath,setBasepath] = useState(base)
+  const [folder,setFolder] = useState(subfolder)
   const onSubmit=()=>{
-    setServerURI(serverText)
+    setServerURI({
+      base:basepath,
+      folder:folder
+    })
     onClose()
   }
   return (
@@ -40,8 +44,11 @@ const Preferences = ({setServerURI,server,show,onClose}) => {
           flex:1,
           padding:16
         }}>
+          <View style={{marginBottom:8}}>
+            <TextInput label={"Dirección base"} value={basepath} onChangeText={text=>setBasepath(text)} />
+          </View>
           <View>
-            <TextInput label={"Dirrección del servidor"} value={serverText} onChangeText={text=>setServerText(text)} />
+            <TextInput label={"Sub-directorio"} value={folder} onChangeText={text=>setFolder(text)} />
           </View>
         </View>
         <View style={{
@@ -65,7 +72,7 @@ const Preferences = ({setServerURI,server,show,onClose}) => {
 const Styles = StyleSheet.create({
   mainContainer:{
     width:Dimensions.get("window").width - Dimensions.get("window").width/8,
-    height:250,
+    height:300,
     backgroundColor:"#fff",
     alignSelf:"center",
     borderRadius:8
@@ -73,7 +80,9 @@ const Styles = StyleSheet.create({
 
 })
 const mapStateToProps=(state)=>({
-  server:state.config.server
+  base:state.config.base,
+  subfolder:state.config.subfolder,
+
 })
 const dispatchStateToProps={
   setServerURI

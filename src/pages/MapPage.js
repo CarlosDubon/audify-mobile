@@ -131,12 +131,12 @@ const MapPage = (props) => {
     fetchPlaces();
   }, []);
   useEffect(() => {
-    let socket = io('https://dei.uca.edu.sv',{
+    let socket = io(props.base,{
       auth: {
         token: props.token,
       },
       autoConnect:true,
-      path:'/sraag-server/socket.io',
+      path:props.subfolder,
 
     });
     console.log(socket);
@@ -189,6 +189,23 @@ const MapPage = (props) => {
       setPlaces(res.data);
     } catch (e) {
       console.log(e);
+      if(e.response){
+        if(e.response.status===403){
+          Toast.show({
+            type:"warning",
+            text1:"Sesión expirado",
+            text2:"Por favor ingrese nuevamente.",
+          })
+          props.navigation.replace("InitPage")
+        }else{
+          Toast.show({
+            type:"danger",
+            text1:"Error interno",
+            text2:"El servicio no se encuentra disponoble en estos momentos",
+          })
+          props.navigation.replace("InitPage")
+        }
+      }
     }
   };
 
@@ -244,6 +261,10 @@ const MapPage = (props) => {
             return (
               <View key={place._id}>
                 <Marker
+                  anchor={{
+                    x: 0.5,
+                    y: 0.5
+                  }}
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
                   <Image source={require('../theme/images/signal.png')} style={{ width: 20, height: 20 }} />
                 </Marker>
@@ -267,7 +288,7 @@ const MapPage = (props) => {
         </Pressable>
       </View>
       <UserPreferences show={show} onClose={()=>setShow(false)} onValueChange={setAudioType} value={audioType} />
-      <PlacesContainer compassHeading={compassHeading} places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.socket} />
+      <PlacesContainer compassHeading={compassHeading} places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.base+props.subfolder} />
     </View>
   );
 
@@ -306,7 +327,8 @@ const Style = StyleSheet.create({
 });
 const mapStateToProps = (state)=>({
   token:state.user.token,
+  base:state.config.base,
   server:state.config.server,
-  socket:state.config.socket,
+  subfolder:state.config.subfolder,
 });
 export default connect(mapStateToProps)(MapPage);
