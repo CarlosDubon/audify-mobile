@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Image, Pressable, StyleSheet, View, Text } from 'react-native';
 import MapView, { Circle, Marker, Callout } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -19,15 +19,13 @@ const MapPage = (props) => {
   const [show,setShow] = useState(false);
   const [places,setPlaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
+  const mapRef = useRef();
 
 
   const [myPosition, setMyPosition] = useState(null);
-  const [zoomDelta,setDelta]=useState({
-    latitudeDelta: 0.0009,
-    longitudeDelta: 0.0009,
-  })
 
   const [compassHeading, setCompassHeading] = useState(0);
+  const [mapZoom, setMapZoom] = useState(20);
 
   //Smoth variables
   const SECONDS = 0.3; //Time in seconds
@@ -167,6 +165,19 @@ const MapPage = (props) => {
     }
   };
 
+  const mapCameraHandler = () => {
+    const map = mapRef.current;
+    if(map){
+      map.getCamera().then(camera => {
+        if (camera.zoom > 10) {
+          console.log(camera);
+          setMapZoom(camera.zoom);
+        }else{
+          setMapZoom(10)
+        }
+      })
+    }
+  }
 
   const fetchPlaces = async ()=>{
     try {
@@ -180,6 +191,7 @@ const MapPage = (props) => {
       console.log(e);
     }
   };
+
   const getReferencePlace = (id)=>{
     return places.find(p=>p._id === id);
   };
@@ -187,14 +199,24 @@ const MapPage = (props) => {
   if (!myPosition) {
     return <></>;
   }
+
   return (
     <View style={Style.container}>
       <MapView
+        ref={mapRef}
         style={Style.map}
-        region={{ ...myPosition,...zoomDelta }}
         loadingEnabled
+        camera={{
+          center: {...myPosition},
+          heading: compassHeading,
+          zoom: mapZoom,
+          pitch: 1,
+          altitude:1,
+        }}
+        onTouchEndCapture={()=> mapCameraHandler()}
         zoomEnabled
-        onRegionChangeComplete={region => setDelta({latitudeDelta: region.latitudeDelta,longitudeDelta: region.longitudeDelta})}
+        zoomTapEnabled
+        rotateEnabled={false}
         scrollEnabled={false}
         showsUserLocation>
         <Marker
@@ -223,7 +245,7 @@ const MapPage = (props) => {
               <View key={place._id}>
                 <Marker
                   coordinate={{ latitude: place.latitude, longitude: place.longitude }}>
-                  <Image source={require('../theme/images/audify.png')} style={{ width: 20, height: 20 }} />
+                  <Image source={require('../theme/images/signal.png')} style={{ width: 20, height: 20 }} />
                 </Marker>
 
                 <Circle center={{ latitude: place.latitude, longitude: place.longitude }}
