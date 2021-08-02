@@ -16,7 +16,6 @@ const PlaceCard = ({ server, onSelect, mPosition, place, compassHeading }) => {
   const [playing, setPlaying] = useState(false);
   const animation = useRef();
 
-
   useEffect(() => {
     setPlaying(prevState => {
       if (prevState) {
@@ -27,7 +26,6 @@ const PlaceCard = ({ server, onSelect, mPosition, place, compassHeading }) => {
 
 
   }, [place]);
-
 
   useEffect(() => {
     const tDistance = getDistance(

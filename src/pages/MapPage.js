@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from 'react';
-import { Image, Pressable, StyleSheet, View, Text } from 'react-native';
-import MapView, { Circle, Marker, Callout } from 'react-native-maps';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import MapView, { Circle, Marker } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { colors } from '../theme/colors';
@@ -15,20 +15,20 @@ import { getDistance, getRhumbLineBearing } from "geolib";
 import { getEarthAngleFromArc, getGeoVelocityComponents, getNewPosition } from '../utils';
 
 const MapPage = (props) => {
-  const [audioType,setAudioType] = useState(1);
   const [show,setShow] = useState(false);
   const [places,setPlaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
+  const [followUser, setFollowUser] = useState(false);
   const mapRef = useRef();
 
 
   const [myPosition, setMyPosition] = useState(null);
-
   const [compassHeading, setCompassHeading] = useState(0);
-  const [mapZoom, setMapZoom] = useState(20);
+  
+  const [mapPosition, setMapPosition] = useState({latitude: 0, longitude: 0});
 
   //Smoth variables
-  const SECONDS = 0.3; //Time in seconds
+  const SECONDS = 0.25; //Time in seconds
   const MIN_DISTANCE = 1; //Meters
 
   const SHORT_DISTANCE = 10;
@@ -67,6 +67,10 @@ const MapPage = (props) => {
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
           });
+          setMapPosition({
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+          })
           return;
         }
 
@@ -80,7 +84,6 @@ const MapPage = (props) => {
           const previous = prev || current;
 
           /* console.log("-------------------");
-          console.log("Position", position);
           console.log("Previus:",previous)
           console.log("Current:",current) */
 
@@ -127,16 +130,18 @@ const MapPage = (props) => {
       }, error => { console.log(error); },
       { distanceFilter: 1, enableHighAccuracy: true, forceRequestLocation: true });
   }
+
   useEffect(() => {
     fetchPlaces();
   }, []);
+
   useEffect(() => {
     let socket = io(props.base,{
       auth: {
         token: props.token,
       },
       autoConnect:true,
-      path:props.subfolder,
+      path:props.socket,
 
     });
     console.log(socket);
@@ -157,6 +162,18 @@ const MapPage = (props) => {
 
   }, []);
 
+  useEffect(()=> {
+    if(followUser){
+      /* setMapPosition(myPosition);
+      setMapHeading(compassHeading); */
+      mapRef.current?.animateCamera({
+        center: myPosition,
+        heading: compassHeading,
+        zoom: 20
+      })
+    }
+  }, [myPosition, compassHeading, followUser]);
+
   const onSelectPlace = (place, isAdd) => {
     if (isAdd) {
       setSelectedPlaces([...selectedPlaces, place._id]);
@@ -165,18 +182,8 @@ const MapPage = (props) => {
     }
   };
 
-  const mapCameraHandler = () => {
-    const map = mapRef.current;
-    if(map){
-      map.getCamera().then(camera => {
-        if (camera.zoom > 10) {
-          console.log(camera);
-          setMapZoom(camera.zoom);
-        }else{
-          setMapZoom(10)
-        }
-      })
-    }
+  const onFollowChangeHandler = (value) => {
+    setFollowUser(value)
   }
 
   const fetchPlaces = async ()=>{
@@ -224,17 +231,17 @@ const MapPage = (props) => {
         style={Style.map}
         loadingEnabled
         camera={{
-          center: {...myPosition},
-          heading: compassHeading,
-          zoom: mapZoom,
+          center: mapPosition,
+          heading: 0,
+          zoom: 20,
           pitch: 1,
           altitude:1,
         }}
-        onTouchEndCapture={()=> mapCameraHandler()}
-        zoomEnabled
-        zoomTapEnabled
-        rotateEnabled={false}
-        scrollEnabled={false}
+        zoomEnabled={!followUser}
+        zoomTapEnabled={!followUser}
+        rotateEnabled={!followUser}
+        scrollEnabled={!followUser}
+        showsCompass={false}
         showsUserLocation>
         <Marker
           flat
@@ -282,13 +289,38 @@ const MapPage = (props) => {
 
 
       </MapView>
-      <View style={Style.preferencesBtn}>
-        <Pressable onPress={()=>setShow(true)}>
-          <Icon name={'gear'} size={30} color={colors.light} />
-        </Pressable>
+      <View style={Style.preferencesContainer} >
+        <View style={Style.preferencesBtn}>
+          <Pressable onPress={()=>setShow(true)}>
+            <Icon name={'gear'} size={30} color={colors.light} />
+          </Pressable>
+        </View>
+        {followUser || <View style={Style.preferencesBtn}>
+          <Pressable onPress={()=> {
+            followUser || mapRef.current?.animateCamera({
+              heading: 0,
+            })
+          }}>
+            <Icon name={'compass'} size={30} color={colors.light} />
+          </Pressable>
+        </View>}
+        {followUser || <View style={Style.preferencesBtn}>
+          <Pressable onPress={()=> {
+            /* setMapZoom(prev => prev + 0.01);
+            setMapPosition(myPosition)
+            setMapHeading(compassHeading) */
+            followUser || mapRef.current?.animateCamera({
+              center: myPosition,
+              heading: compassHeading,
+              zoom: 20
+            })
+          }}>
+            <Icon name={'location-arrow'} size={30} color={colors.light} />
+          </Pressable>
+        </View>}
       </View>
-      <UserPreferences show={show} onClose={()=>setShow(false)} onValueChange={setAudioType} value={audioType} />
       <PlacesContainer compassHeading={compassHeading} places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.base+props.subfolder} />
+      <UserPreferences show={show} onClose={()=>setShow(false)} followUser={followUser} onFollowChange={onFollowChangeHandler} />
     </View>
   );
 
@@ -312,10 +344,12 @@ const Style = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  preferencesBtn:{
+  preferencesContainer:{
     position:'absolute',
     top:0,
     right:0,
+  },
+  preferencesBtn:{
     backgroundColor:colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -328,6 +362,7 @@ const Style = StyleSheet.create({
 const mapStateToProps = (state)=>({
   token:state.user.token,
   base:state.config.base,
+  socket: state.config.socket,
   server:state.config.server,
   subfolder:state.config.subfolder,
 });

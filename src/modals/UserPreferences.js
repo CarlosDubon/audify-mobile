@@ -8,17 +8,13 @@ import { StackActions, useNavigation } from "@react-navigation/native";
 import { updateToken } from "../redux/actions/user";
 import { connect } from "react-redux";
 
-const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
+const UserPreferences = ({updateToken,show,onClose,onFollowChange,followUser}) => {
   const navigation = useNavigation()
   return (
     <Modal
       visible={show}
-      contentContainerStyle={Styles.mainContainer}
-      onDismiss={onClose}
-    >
-      <View style={{
-        flex:1
-      }}>
+      onDismiss={onClose}>
+      <View style={Styles.mainContainer}>
         <View style={{flexDirection:"row"}}>
           <View style={{flex:1,alignItems:"center"}}>
             <Text style={{
@@ -35,9 +31,16 @@ const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
           </Pressable>
         </View>
 
-        <View style={{ margin:16, flexDirection: "row" }}>
-            <Text> ¿Seguir al usuario? </Text>
-            <Switch/>
+        <View style={{ 
+          margin:16, 
+          flexDirection: "row",
+          alignItems: "center" }}>
+            <Text style={{flex: 2 }}> ¿Seguir al usuario? </Text>
+            <Switch
+              value={followUser}
+              color={colors.primary}
+              onValueChange={onFollowChange} 
+              style={{flex:1}}/>
         </View>
 
         <View style={{ margin:16 }}>
@@ -62,7 +65,8 @@ const UserPreferences = ({updateToken,show,onClose,onValueChange,value}) => {
 const Styles = StyleSheet.create({
   mainContainer:{
     width:Dimensions.get("window").width - Dimensions.get("window").width/8,
-    height:150,
+    minHeight: 150,
+    
     backgroundColor:"#fff",
     alignSelf:"center",
     borderRadius:8
