@@ -199,7 +199,7 @@ const MapPage = (props) => {
         if(e.response.status===403){
           props.updateToken(null)
           Toast.show({
-            type:"danger",
+            type:"error",
             text1:"Sesión expirado",
             text2:"Por favor ingrese nuevamente.",
           })
@@ -207,7 +207,7 @@ const MapPage = (props) => {
         }else{
           props.updateToken(null)
           Toast.show({
-            type:"danger",
+            type:"error",
             text1:"Error interno",
             text2:"El servicio no se encuentra disponoble en estos momentos",
           })
