@@ -7,7 +7,7 @@ import axios from "axios";
 import { SERVER_URI } from "../theme/ServerConection";
 import { updateToken } from "../redux/actions/user";
 import { connect } from "react-redux";
-import { useNavigation } from "@react-navigation/native";
+import { StackActions, useNavigation } from "@react-navigation/native";
 
 const Login = (props) => {
   const navigation = useNavigation()
@@ -30,7 +30,8 @@ const Login = (props) => {
         if(res.status===200){
           setLoading(false)
           props.updateToken(res.data.token)
-          navigation.navigate("MapPage")
+          navigation.pop(2)
+          navigation.replace("MapPage")
         }
         if(res.status === 409){
           Toast.show({
