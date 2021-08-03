@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import MapView, { Circle, Marker } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import IconFeather from 'react-native-vector-icons/Feather';
 import { colors } from '../theme/colors';
 import { connect } from 'react-redux';
 import UserPreferences from '../modals/UserPreferences';
@@ -15,6 +16,8 @@ import { getDistance, getRhumbLineBearing } from "geolib";
 import { getEarthAngleFromArc, getGeoVelocityComponents, getNewPosition } from '../utils';
 import Toast from 'react-native-toast-message';
 import { updateToken } from "../redux/actions/user";
+import { setFollowUser } from "../redux/actions/config";
+import { color } from 'react-native-reanimated';
 
 const MapPage = (props) => {
   const [show,setShow] = useState(false);
@@ -64,30 +67,24 @@ const MapPage = (props) => {
 
   const myPositionCallback=() => {
     Geolocation.getCurrentPosition(position => {
-        if (!myPosition) {
-          setMyPosition({
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-          });
-          setMapPosition({
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-          });
-
-          mapRef.current?.animateCamera({
-            center: myPosition,
-            heading: compassHeading,
-            zoom: 20
-          })
-          return;
-        }
-
         setMyPosition(prev => {
           const current = {
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
           };
 
+          if (!prev) {
+            console.log(prev);
+
+            setMapPosition(current);
+  
+            mapRef.current?.animateCamera({
+              center: current,
+              heading: compassHeading,
+              zoom: 20
+            })
+            return current;
+          }
 
           const previous = prev || current;
 
@@ -308,10 +305,13 @@ const MapPage = (props) => {
               heading: 0,
             })
           }}>
-            <Icon name={'compass'} size={30} color={colors.light} />
+            <IconFeather name={'navigation-2'} size={30} color={colors.light} />
           </Pressable>
         </View>}
-        {followUser || <View style={Style.preferencesBtn}>
+        <View style={[Style.preferencesBtn, 
+          { 
+            backgroundColor: followUser ? colors.light : colors.primary 
+          }]}>
           <Pressable onPress={()=> {
             /* setMapZoom(prev => prev + 0.01);
             setMapPosition(myPosition)
@@ -320,11 +320,13 @@ const MapPage = (props) => {
               center: myPosition,
               heading: compassHeading,
               zoom: 20
-            })
+            });
+
+            props.setFollowUser(!followUser)
           }}>
-            <Icon name={'location-arrow'} size={30} color={colors.light} />
+            <Icon name={'location-arrow'} size={30} color={!followUser ? colors.light : colors.primary} />
           </Pressable>
-        </View>}
+        </View>
       </View>
       <PlacesContainer compassHeading={compassHeading} places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.base+props.subfolder} />
       <UserPreferences show={show} onClose={()=>setShow(false)}  />
@@ -375,6 +377,7 @@ const mapStateToProps = (state)=>({
   followUser: state.config.followUser
 });
 const dispatchStateToProps={
-  updateToken
+  updateToken,
+  setFollowUser
 }
 export default connect(mapStateToProps,dispatchStateToProps)(MapPage);
