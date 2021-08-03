@@ -13,18 +13,19 @@ import { io } from 'socket.io-client';
 import CompassHeading from 'react-native-compass-heading';
 import { getDistance, getRhumbLineBearing } from "geolib";
 import { getEarthAngleFromArc, getGeoVelocityComponents, getNewPosition } from '../utils';
+import Toast from 'react-native-toast-message';
+import { updateToken } from "../redux/actions/user";
 
 const MapPage = (props) => {
   const [show,setShow] = useState(false);
   const [places,setPlaces] = useState([]);
   const [selectedPlaces, setSelectedPlaces] = useState([]);
-  const [followUser, setFollowUser] = useState(false);
   const mapRef = useRef();
 
 
   const [myPosition, setMyPosition] = useState(null);
   const [compassHeading, setCompassHeading] = useState(0);
-  
+
   const [mapPosition, setMapPosition] = useState({latitude: 0, longitude: 0});
 
   //Smoth variables
@@ -39,6 +40,7 @@ const MapPage = (props) => {
   const DELTA_MEDIUM = 2 * SECONDS;
   const DELTA_LARGE = 4 * SECONDS;
 
+  const {followUser} = props
 
   useEffect(() => {
     const degree_update_rate = 5;
@@ -182,9 +184,6 @@ const MapPage = (props) => {
     }
   };
 
-  const onFollowChangeHandler = (value) => {
-    setFollowUser(value)
-  }
 
   const fetchPlaces = async ()=>{
     try {
@@ -198,13 +197,15 @@ const MapPage = (props) => {
       console.log(e);
       if(e.response){
         if(e.response.status===403){
+          props.updateToken(null)
           Toast.show({
-            type:"warning",
+            type:"danger",
             text1:"Sesión expirado",
             text2:"Por favor ingrese nuevamente.",
           })
           props.navigation.replace("InitPage")
         }else{
+          props.updateToken(null)
           Toast.show({
             type:"danger",
             text1:"Error interno",
@@ -320,7 +321,7 @@ const MapPage = (props) => {
         </View>}
       </View>
       <PlacesContainer compassHeading={compassHeading} places={places} mPosition={myPosition} onSelect={onSelectPlace} server={props.base+props.subfolder} />
-      <UserPreferences show={show} onClose={()=>setShow(false)} followUser={followUser} onFollowChange={onFollowChangeHandler} />
+      <UserPreferences show={show} onClose={()=>setShow(false)}  />
     </View>
   );
 
@@ -365,5 +366,9 @@ const mapStateToProps = (state)=>({
   socket: state.config.socket,
   server:state.config.server,
   subfolder:state.config.subfolder,
+  followUser: state.config.followUser
 });
-export default connect(mapStateToProps)(MapPage);
+const dispatchStateToProps={
+  updateToken
+}
+export default connect(mapStateToProps,dispatchStateToProps)(MapPage);
