@@ -70,6 +70,12 @@ const MapPage = (props) => {
           setMapPosition({
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
+          });
+
+          mapRef.current?.animateCamera({
+            center: myPosition,
+            heading: compassHeading,
+            zoom: 20
           })
           return;
         }
@@ -230,7 +236,7 @@ const MapPage = (props) => {
         ref={mapRef}
         style={Style.map}
         loadingEnabled
-        camera={{
+        initialCamera={{
           center: mapPosition,
           heading: 0,
           zoom: 20,
