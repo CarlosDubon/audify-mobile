@@ -1,10 +1,10 @@
 import { SET_FOLLOW, SET_SERVER_URI } from "../actions/config";
 
 const initialState = {
-  base:"http://147.182.171.70",
-  subfolder:"/api",
-  server:"http://147.182.171.70/api/v1",
-  socket:"/api/socket.io",
+  base:"https://dei.uca.edu.sv",
+  subfolder:"/audify",
+  server:"https://dei.uca.edu.sv/audify/api/v1",
+  socket:"/audify/socket.io",
   followUser:true
 }
 
@@ -13,7 +13,7 @@ const reducer =(state=initialState,{type,payload})=>{
     case SET_SERVER_URI:
       return {
         base:payload.base,
-        server:`${payload.base}${payload.folder}/v1`,
+        server:`${payload.base}${payload.folder}/api/v1`,
         subfolder:`${payload.folder}`,
         socket:`${payload.folder}/socket.io`,
         followUser: state.followUser
