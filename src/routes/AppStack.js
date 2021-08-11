@@ -11,6 +11,7 @@ import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import { persistor, store } from "../redux/storage/storage";
 import {PersistGate} from 'redux-persist/integration/react';
+import ForgetPassword from "../pages/ForgetPassword";
 
 const Stack = createStackNavigator();
 
@@ -86,6 +87,7 @@ const AppStack = () => {
               <Stack.Screen name="SignUp" component={SignUp} />
               <Stack.Screen name="InitConnection" component={InitConnection} />
               <Stack.Screen name="MapPage" component={MapPage} />
+              <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
             </Stack.Navigator>
           </NavigationContainer>
           <Toast ref={(ref) => Toast.setRef(ref)} />

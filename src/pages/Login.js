@@ -1,13 +1,12 @@
-import React, { createRef, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { createRef, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Backheader from "../components/Backheader";
 import { Button, Text, TextInput } from "react-native-paper";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
 import axios from "axios";
-import { SERVER_URI } from "../theme/ServerConection";
 import { updateToken } from "../redux/actions/user";
 import { connect } from "react-redux";
-import { StackActions, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 
 const Login = (props) => {
   const navigation = useNavigation()
@@ -90,7 +89,11 @@ const Login = (props) => {
               right={<TextInput.Icon name="eye" />}
             />
           </View>
-
+          <View style={{marginTop:16}}>
+            <Pressable onPress={()=> props.navigation.navigate("ForgetPassword")}>
+              <Text style={Styles.description}>¿Olvidaste tu contraseña?</Text>
+            </Pressable>
+          </View>
         </View>
         <View style={{marginTop:32, marginBottom:64}}>
           <View style={Styles.registerContent}>
